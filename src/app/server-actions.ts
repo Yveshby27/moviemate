@@ -1,14 +1,13 @@
 'use server'
 import { api} from "~/trpc/server"
 import type { UserCreateInfo,CinemaCreateInfo,MovieCreateInfo,ReservationCreateInfo,
-    RoomCreateInfo,ScreeningCreateInfo,SeatCreateInfo,LayoutCreateInfo } from "~/server/db";
+    RoomCreateInfo,ScreeningCreateInfo,SeatCreateInfo,LayoutCreateInfo, 
+    SeatUpdateInfo,ScreeningUpdateInfo,AdminCreateInfo} from "~/server/db";
    
-export const createUser = async ({newUserId, email, password,isAdmin }: UserCreateInfo) => {
+export const createUser = async ({ email, password}: UserCreateInfo) => {
     const newUser=await api.user.createUser.mutate({
-      newUserId,
       email,
-      password,
-      isAdmin
+      password
     });
     return newUser
   };
@@ -23,10 +22,34 @@ export const createUser = async ({newUserId, email, password,isAdmin }: UserCrea
     const specifiedUser = (await api.user.getSpecifiedUser.query(userId)).data;
     return specifiedUser;
   };
-  
-
  
-
+  export const deleteUser=async(userId:string)=>{
+    const deletedUser=(await api.user.deleteUser.mutate(userId)).data
+    return deletedUser
+  }
+  export const createAdmin = async ({ accessId, password}: AdminCreateInfo) => {
+    const newAdmin=await api.admin.createAdmin.mutate({
+      accessId, password
+    });
+    return newAdmin
+  };
+  
+  export const getAllAdmins = async () => {
+    const allAdmins = (await api.admin.getAllAdmins.query()).data;
+    if (allAdmins === undefined) return;
+    return allAdmins;
+  };
+  
+  export const getSpecifiedAdmin = async (adminId: string) => {
+    const specifiedAdmin = (await api.admin.getSpecifiedAdmin.query(adminId)).data;
+    return specifiedAdmin;
+  };
+ 
+  
+  export const deleteAdmin=async(adminId:string)=>{
+    const deletedAdmin=(await api.admin.deleteAdmin.mutate(adminId)).data
+    return deletedAdmin
+  }
 
   export const createCinema = async ({name, numberOfRooms }: CinemaCreateInfo) => {
     const newCinema=await api.cinema.createCinema.mutate({
@@ -47,13 +70,17 @@ export const createUser = async ({newUserId, email, password,isAdmin }: UserCrea
     return specifiedCinema;
   };
   
+  export const deleteCinema=async(cinemaId:string)=>{
+    const deletedCinema=(await api.cinema.deleteCinema.mutate(cinemaId)).data
+    return deletedCinema
+  }
 
-
-  export const createMovie = async ({title,length,releaseDate }: MovieCreateInfo) => {
+  export const createMovie = async ({title,length,releaseDate,description }: MovieCreateInfo) => {
     const newMovie=await api.movie.createMovie.mutate({
 title,
 releaseDate,
-length
+length,
+description
     });
     return newMovie
   };
@@ -65,33 +92,51 @@ length
   };
 
   export const getSpecifiedMovie = async (movieId: string) => {
-    const specifiedMovie = (await api.user.getSpecifiedUser.query(movieId)).data;
+    const specifiedMovie = (await api.movie.getSpecifiedMovie.query(movieId)).data;
     return specifiedMovie;
   };
   
-
-  export const createScreening = async ({roomId,movieId,screeningTime,availableSeats }: ScreeningCreateInfo) => {
+export const deleteMovie=async(movieId:string)=>{
+  const deletedMovie=(await api.movie.deleteMovie.mutate(movieId)).data
+  return deletedMovie
+}
+  export const createScreening = async ({roomId,movieId,screeningTime,availableSeats,seatPrice }: ScreeningCreateInfo) => {
     const newScreening=await api.screening.createScreening.mutate({
 movieId,
 roomId,
 availableSeats,
-screeningTime
+screeningTime,
+seatPrice
     });
     return newScreening
   };
 
   export const getAllRoomScreenings = async (roomId:string) => {
-    const allScreenings = (await api.screening.getAllRoomScreenings.query(roomId)).data;
-    if (allScreenings === undefined) return;
-    return allScreenings;
+    const allRoomScreenings = (await api.screening.getAllRoomScreenings.query(roomId)).data;
+    if (allRoomScreenings === undefined) return;
+    return allRoomScreenings;
   };
+
+export const getAllMovieScreenings=async(movieId:string)=>{
+  const allMovieScreenings=(await api.screening.getAllMovieScreenings.query(movieId)).data;
+  if(!allMovieScreenings)return;
+  return allMovieScreenings;
+}
 
   export const getSpecifiedScreening = async (screeningId: string) => {
     const specifiedScreening = (await api.screening.getSpecifiedScreening.query(screeningId)).data;
     return specifiedScreening;
   };
   
+export const updateScreening=async({screeningId,availableSeats}:ScreeningUpdateInfo)=>{
+const updatedScreening=await api.screening.updateScreening.mutate({screeningId,availableSeats})
+return updatedScreening
+}
 
+export const deleteScreening=async(screeningId:string)=>{
+  const deletedScreening=(await api.screening.deleteScreening.mutate(screeningId)).data
+  return deletedScreening
+}
 
   export const createRoom = async ({cinemaId,roomNumber,capacity,layoutId}: RoomCreateInfo) => {
     const newRoom=await api.room.createRoom.mutate({
@@ -114,22 +159,42 @@ layoutId
     return specifiedRoom;
   };
   
+  export const deleteRoom=async(roomId:string)=>{
+    const deletedRoom=(await api.room.deleteRoom.mutate(roomId)).data
+    return deletedRoom
+  }
 
 
 
-  export const createSeat = async ({roomId,number,status}: SeatCreateInfo) => {
+  export const createSeat = async ({roomId,number}: SeatCreateInfo) => {
    const newSeat= await api.seat.createSeat.mutate({
 roomId,
-number,
-status
+number
     });
     return newSeat
   };
+  export const updateSeat = async ({seatId,reservationId}: SeatUpdateInfo) => {
+    const updatedSeat= await api.seat.updateSeat.mutate({
+ seatId,
+ reservationId 
+     });
+     return updatedSeat
+   };
+ 
+   export const deleteSeat=async(seatId:string)=>{
+    const deletedSeat=(await api.seat.deleteSeat.mutate(seatId)).data
+    return deletedSeat
+   }
 
-  export const getAllScreeningSeats = async (screeningId:string) => {
-    const allScreeningSeats = (await api.seat.getAllScreeningSeats.query(screeningId)).data;
-    if (allScreeningSeats === undefined) return;
-    return allScreeningSeats;
+   export const deleteAllRoomSeats=async(roomId:string)=>{
+    const deletedSeats=(await api.seat.deleteAllRoomSeats.mutate(roomId)).data
+    return deletedSeats
+   }
+
+  export const getAllRoomSeats = async (roomId:string) => {
+    const allRoomSeats = (await api.seat.getAllRoomSeats.query(roomId)).data;
+    if (allRoomSeats === undefined) return;
+    return allRoomSeats;
   };
 
   export const getSpecifiedseat = async (seatId: string) => {
@@ -137,6 +202,10 @@ status
     return specifiedSeat;
   };
   
+  export const getReservationSeats=async(reservationId:string)=>{
+    const reservationSeats = (await api.seat.getReservationSeats.query(reservationId)).data;
+    return reservationSeats;
+  }
 
   export const createReservation = async ({screeningId,totalAmount,userId}: ReservationCreateInfo) => {
     const newReservation=await api.reservation.createReservation.mutate({
@@ -158,6 +227,10 @@ userId
     return specifiedReservation;
   };
 
+  export const deleteReservation=async(reservationId:string)=>{
+    const deletedReservation=(await api.reservation.deleteReservation.mutate(reservationId)).data
+    return deletedReservation
+  }
 
    export const createLayout = async ({name, rows,columns,totalSeats,seatMap }: LayoutCreateInfo) => {
     const newLayout=await api.layout.createLayout.mutate({
@@ -180,3 +253,8 @@ userId
     const specifiedLayout = (await api.layout.getSpecifiedLayout.query(layoutId)).data;
     return specifiedLayout;
   };
+
+  export const deleteLayout=async(layoutId:string)=>{
+    const deletedLayout=(await api.layout.deleteLayout.mutate(layoutId)).data
+    return deletedLayout
+  }

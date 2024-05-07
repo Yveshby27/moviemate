@@ -8,6 +8,7 @@ import { screeningRouter } from "./routers/screening";
 import { seatRouter } from "./routers/seat";
 import { reservationRouter } from "./routers/reservation";
 import { layoutRouter } from "./routers/layout";
+import { adminRouter } from "./routers/admin";
 /**
  * This is the primary router for your server.
  *
@@ -21,7 +22,8 @@ movie:movieRouter,
 screening:screeningRouter,
 seat:seatRouter,
 reservation:reservationRouter,
-layout:layoutRouter
+layout:layoutRouter,
+admin:adminRouter
 });
 
 // export type definition of API

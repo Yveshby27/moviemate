@@ -1,47 +1,44 @@
 "use client";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ClipLoader } from "react-spinners";
 import Image from "next/image";
-import showLogo from "../../icons/show.png";
-import hideLogo from "../../icons/hide.png";
+import showLogo from "../icons/show.png";
+import hideLogo from "../icons/hide.png";
 import { useUserContext } from "~/app/context";
-import { getAllAdmins } from "~/app/server-actions";
+import { getAllUsers } from "~/app/server-actions";
 const LoginPage = () => {
   const router = useRouter();
-  const [accessId, setAccessId] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [warning, setWarning] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const context = useUserContext();
   const [isPasswordShown, setIsPasswordShown] = useState(false);
-  useEffect(() => {
-    localStorage.setItem("adminId", "");
-  }, []);
   const handleLogin = async () => {
     try {
-      if (accessId === "" || password === "") {
+      if (email === "" || password === "") {
         setWarning("Fill all fields");
         return;
       }
       setIsLoading(true);
-      const allAdmins = await getAllAdmins();
-      for (let i = 0; i < allAdmins.length; i++) {
-        if (accessId === allAdmins[i]?.access_id) {
-          if (password === allAdmins[i]?.password) {
-            context.setCurrentAdmin(allAdmins[i].id);
-            localStorage.setItem("adminId", allAdmins[i].id);
+      const allUsers = await getAllUsers();
+      for (let i = 0; i < allUsers.length; i++) {
+        if (email === allUsers[i]?.email) {
+          if (password === allUsers[i]?.password) {
+            context.setCurrentUser(allUsers[i].id);
+            localStorage.setItem("userId", allUsers[i].id);
             setWarning("");
-            setAccessId("");
+            setEmail("");
             setPassword("");
-            router.push("../admin-section/operations");
+            router.push("../mainpage");
             break;
           } else {
             setWarning("Wrong password");
           }
         } else {
-          setWarning("Access ID not found");
+          setWarning("Email not found");
         }
       }
       setIsLoading(false);
@@ -60,13 +57,14 @@ const LoginPage = () => {
         <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
           <div>
             <label className="mb-2 text-sm font-semibold text-gray-700">
-              Access ID
+              Email
             </label>
             <input
-              value={accessId}
-              onChange={(e) => setAccessId(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded border border-gray-300 p-2  focus:border-blue-500"
-              placeholder="Enter your access ID"
+              type="email"
+              placeholder="Enter your email"
             />
           </div>
           <div className="flex">
@@ -105,13 +103,13 @@ const LoginPage = () => {
         <div className="mt-6 flex items-center justify-center">
           <span className="text-sm text-gray-600">No account?</span>
           <Link
-            href="../admin-section/signup-section"
+            href="../signup-section"
             className="ml-1 text-blue-500 hover:text-blue-600"
           >
             Sign up
           </Link>
         </div>
-        <Link href="../admin-section">
+        <Link href="/">
           <div className="focus:shadow-outline-blue flex w-14 justify-center rounded bg-blue-500 p-2 text-center  text-white hover:bg-blue-600 focus:outline-none">
             Back
           </div>

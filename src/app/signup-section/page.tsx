@@ -1,14 +1,14 @@
 "use client";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import { createAdmin, getAllAdmins } from "~/app/server-actions";
+import { createUser, getAllUsers } from "~/app/server-actions";
 import { ClipLoader } from "react-spinners";
 import Image from "next/image";
-import showLogo from "../../icons/show.png";
-import hideLogo from "../../icons/hide.png";
+import showLogo from "../icons/show.png";
+import hideLogo from "../icons/hide.png";
 import Link from "next/link";
-const AdminSignupPage = () => {
-  const [accessId, setAccessId] = useState("");
+const UserSignupPage = () => {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
   const [warning, setWarning] = useState("");
@@ -82,15 +82,15 @@ const AdminSignupPage = () => {
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     try {
       e.preventDefault();
-      if (accessId === "" || password === "" || confirmPassword === "") {
+      if (email === "" || password === "" || confirmPassword === "") {
         setWarning("Fill all fields");
         return;
       }
-      const allAdmins = await getAllAdmins();
-      if (!allAdmins) return;
-      for (let i = 0; i < allAdmins.length; i++) {
-        if (accessId === allAdmins[i]?.access_id) {
-          setWarning("Account already created for this access ID");
+      const allUsers = await getAllUsers();
+      if (!allUsers) return;
+      for (let i = 0; i < allUsers.length; i++) {
+        if (email === allUsers[i]?.email) {
+          setWarning("Account already created for this email");
           return;
         }
       }
@@ -102,13 +102,13 @@ const AdminSignupPage = () => {
       }
       setIsLoading(true);
 
-      const newAdmin = await createAdmin({
-        accessId,
+      const newUser = await createUser({
+        email,
         password,
       });
-      console.log("New admin:", newAdmin.data);
+      console.log("New user:", newUser.data);
       setWarning("");
-      router.push("../admin-section/login-section");
+      router.push("../login-section");
     } catch (error) {
       setIsLoading(false);
       setWarning("Invalid input");
@@ -122,13 +122,14 @@ const AdminSignupPage = () => {
         <div className="flex">
           <div className="mb-4">
             <label className="mb-2 block text-sm font-bold text-gray-700">
-              Access ID
+              Email
             </label>
             <input
-              value={accessId}
-              onChange={(e) => setAccessId(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded border p-2 pr-36  focus:border-blue-500"
-              placeholder="Enter your access ID"
+              type="email"
+              placeholder="Enter your email"
             />
           </div>
         </div>
@@ -179,7 +180,7 @@ const AdminSignupPage = () => {
         </div>
         <div className="font-bold text-red-600">{warning}</div>
         <div className="flex justify-between">
-          <Link href="../admin-section">
+          <Link href="/">
             <div className="focus:shadow-outline-blue flex w-14 justify-center rounded bg-blue-500 p-2 text-center  text-white hover:bg-blue-600 focus:outline-none">
               Back
             </div>
@@ -197,4 +198,4 @@ const AdminSignupPage = () => {
   );
 };
 
-export default AdminSignupPage;
+export default UserSignupPage;

@@ -18,6 +18,7 @@ if (env.NODE_ENV !== "production") globalForPrisma.prisma = db;
 
 
 const user=db.user
+const admin=db.admin
 const cinema=db.cinema
 const room=db.room
 const movie=db.movie
@@ -49,16 +50,15 @@ catch(error){
 }
 }
 
+
 export interface UserCreateInfo{
-newUserId:string,
 email:string,
 password:string,
-isAdmin:boolean
 }
 
-export const createUser=async({newUserId,email,password,isAdmin}:UserCreateInfo)=>{
+export const createUser=async({email,password}:UserCreateInfo)=>{
 try{
-  const newUser=await user.create({data:{id:newUserId,email,password,is_admin:isAdmin}})
+  const newUser=await user.create({data:{email,password}})
   console.log('User created in database:',newUser)
   return newUser 
 }catch(error){
@@ -76,11 +76,60 @@ return deletedUser
   }
 }
 
+//ADMIN DB FUNCTIONS
+export const fetchAllAdmins=async()=>{
+  try{
+  const allAdmins=await admin.findMany()
+  console.log('Users fetched from database:',allAdmins)
+  return allAdmins
+  }
+  catch(error){
+    console.log('An error occured while fetching admins(database error):',error)
+  }
+}
+
+export const fetchSpecifiedAdmin=async(adminId:string)=>{
+try{
+  const specifiedAdmin=await admin.findUnique({where:{id:adminId}})
+  console.log('Admin fetched from database:',specifiedAdmin)
+  return specifiedAdmin
+}
+catch(error){
+  console.log('An error occured while fetching admin(database error):',error)
+}
+}
+
+
+export interface AdminCreateInfo{
+accessId:string,
+password:string,
+}
+
+export const createAdmin=async({accessId,password}:AdminCreateInfo)=>{
+try{
+  const newAdmin=await admin.create({data:{access_id:accessId,password}})
+  console.log('Admin created in database:',newAdmin)
+  return newAdmin 
+}catch(error){
+  console.log('An error occured while creating admin(database error):',error)
+}
+}
+
+export const deleteAdmin=async(adminId:string)=>{
+  try{
+const deletedAdmin=await admin.delete({where:{id:adminId}})
+console.log('Admin deleted from database:',deletedAdmin)
+return deletedAdmin
+  }catch(error){
+    console.log('An error occured while deleting admin(database error):',error)
+  }
+}
+
 //CINEMA DB FUNCTIONS
 
 export const fetchAllCinemas=async()=>{
   try{
-  const allCinemas=await cinema.findMany()
+  const allCinemas=await cinema.findMany({include:{rooms:true}})
   console.log('Cinemas fetched from database:',allCinemas)
   return allCinemas
   }
@@ -91,7 +140,7 @@ export const fetchAllCinemas=async()=>{
 
 export const fetchSpecifiedCinema=async(cinemaId:string)=>{
 try{
-  const specifiedCinema=await cinema.findUnique({where:{id:cinemaId}})
+  const specifiedCinema=await cinema.findUnique({where:{id:cinemaId},include:{rooms:true}})
   console.log('Cinema fetched from database:',specifiedCinema)
   return specifiedCinema
 }
@@ -130,7 +179,7 @@ return deletedCinema
 
 export const fetchAllCinemaRooms=async(cinemaId:string)=>{
   try{
-    const allCinemaRooms=await room.findMany({where:{cinemaId}})
+    const allCinemaRooms=await room.findMany({where:{cinemaId},include:{layout:true,screenings:true}})
     console.log(`Rooms fetched from database:`,allCinemaRooms)
     return allCinemaRooms
   }
@@ -140,7 +189,7 @@ export const fetchAllCinemaRooms=async(cinemaId:string)=>{
 }
 export const fetchSpecifiedRoom=async(roomId:string)=>{
   try{
-    const specifiedRoom=await room.findUnique({where:{id:roomId}})
+    const specifiedRoom=await room.findUnique({where:{id:roomId},include:{layout:true,screenings:true}})
     console.log('Room fetched from database:',specifiedRoom)
     return specifiedRoom
   }
@@ -180,7 +229,7 @@ export const fetchSpecifiedRoom=async(roomId:string)=>{
 
 export const fetchAllMovies=async()=>{
   try{
-    const allMovies=await movie.findMany()
+  const allMovies=await movie.findMany({include:{screenings:true}})
     console.log(`Movies fetched from database:`,allMovies)
     return allMovies
   }
@@ -190,7 +239,7 @@ export const fetchAllMovies=async()=>{
 }
 export const fetchSpecifiedMovie=async(movieId:string)=>{
   try{
-    const specifiedMovie=await movie.findUnique({where:{id:movieId}})
+    const specifiedMovie=await movie.findUnique({where:{id:movieId},include:{screenings:true}})
     console.log('Movie fetched from database:',specifiedMovie)
     return specifiedMovie
   }
@@ -202,12 +251,13 @@ export const fetchSpecifiedMovie=async(movieId:string)=>{
   export interface MovieCreateInfo{
   title:string,
   length:number,
-releaseDate:string
+releaseDate:string,
+description:string
   }
   
-  export const createMovie=async({title,length,releaseDate}:MovieCreateInfo)=>{
+  export const createMovie=async({title,length,releaseDate,description}:MovieCreateInfo)=>{
   try{
-    const newMovie=await movie.create({data:{title,length,release_date:releaseDate}})
+    const newMovie=await movie.create({data:{title,length,release_date:releaseDate,description}})
     console.log('Movie created in database:',newMovie)
     return newMovie
   }catch(error){
@@ -226,21 +276,35 @@ releaseDate:string
   }
 
 
-  //SCREENING DB FUNCTIONS
+
 
   export const fetchAllRoomScreenings=async(roomId:string)=>{
     try{
-      const allRoomScreenings=await screening.findMany({where:{roomId}})
-      console.log(`Screenings fetched from database:`,allRoomScreenings)
+      const allRoomScreenings=await screening.findMany({where:{roomId},include:{movie:true}})
+      console.log(`Room screenings fetched from database:`,allRoomScreenings)
       return allRoomScreenings
     }
     catch(error){
-      console.log('An error occured while fetching screenings(database error):',error)
+      console.log('An error occured while fetching room screenings(database error):',error)
     }
+  }
+
+
+
+  export  const fetchAllMovieScreenings=async(movieId:string)=>{
+    try{
+      const allMovieScreenings=await screening.findMany({where:{movieId},include:{movie:true}})
+      console.log()
+    console.log(`Room screenings fetched from database:`,allMovieScreenings)
+    return allMovieScreenings
+  }
+  catch(error){
+    console.log('An error occured while fetching movie screenings(database error):',error)
+  }
   }
   export const fetchSpecifiedScreening=async(screeningId:string)=>{
     try{
-      const specifiedScreening=await room.findUnique({where:{id:screeningId}})
+      const specifiedScreening=await screening.findUnique({where:{id:screeningId},include:{movie:true,room:true}})
       console.log('Screening fetched from database:',specifiedScreening)
       return specifiedScreening
     }
@@ -253,12 +317,13 @@ releaseDate:string
     roomId:string,
     movieId:string,
   availableSeats:number,
-screeningTime:string
+screeningTime:string,
+seatPrice:number
     }
     
-    export const createScreening=async({roomId,movieId,availableSeats,screeningTime}:ScreeningCreateInfo)=>{
+    export const createScreening=async({roomId,movieId,availableSeats,screeningTime,seatPrice}:ScreeningCreateInfo)=>{
     try{
-      const newScreening=await screening.create({data:{roomId,movieId,available_seats:availableSeats,screening_time:screeningTime}})
+      const newScreening=await screening.create({data:{roomId,movieId,available_seats:availableSeats,screening_time:screeningTime,seat_price:seatPrice}})
       console.log('Screening created in database:',newScreening)
       return newScreening
     }catch(error){
@@ -277,17 +342,46 @@ screeningTime:string
     }
 
 
+    export interface ScreeningUpdateInfo{
+      screeningId:string,
+      availableSeats:number
+            }
+
+            export const updateScreening=async({screeningId,availableSeats}:ScreeningUpdateInfo)=>{
+              try{
+                const updatedScreening=await screening.update({where:{id:screeningId},data:{available_seats:availableSeats}})
+                console.log('Seat updated in database:',updatedScreening)
+                return updatedScreening
+              }
+              catch(error){
+                console.log('An error occured while updating screening(database error):',error)
+              }
+            }
+
     //SEAT DB FUNCTIONS
-    export const fetchAllRoomSeats=async(roomId:string)=>{
-      try{
-        const allRoomSeats=await seat.findMany({where:{roomId}})
-        console.log(`Seats fetched from database:`,allRoomSeats)
-        return allRoomSeats
-      }
-      catch(error){
-        console.log('An error occured while fetching seats(database error):',error)
+    export const fetchAllRoomSeats = async (roomId: string) => {
+      try {
+        const allRoomSeats = await seat.findMany({
+          where: { roomId },
+          include: { reservations: true }
+        });
+        console.log(`Room seats fetched from database:`, allRoomSeats);
+        return allRoomSeats;
+      } catch (error) {
+        console.log('An error occurred while fetching room seats (database error):', error);
       }
     }
+    
+
+    export const fetchReservationSeats=async(reservationId:string)=>{
+      try{
+        const allReservationSeats=await seat.findMany({where:{reservations:{some:{id:reservationId}}}})
+        console.log('Reservation seats fetched from database:',allReservationSeats)
+        return allReservationSeats
+    }catch(error){
+      console.log('An error occured while fetching reservation seats(database error):',error)
+    }
+  }
     export const fetchSpecifiedSeat=async(seatId:string)=>{
       try{
         const specifiedSeat=await seat.findUnique({where:{id:seatId}})
@@ -299,20 +393,18 @@ screeningTime:string
       }
       }
 
-      export enum Status{
-        Available='Available',
-        Booked='Booked'
-      }
+
+     
       
      export interface SeatCreateInfo{
 roomId:string,
   number:string,
-status:Status
+
       }
       
-      export const createSeat=async({roomId,number,status}:SeatCreateInfo)=>{
+      export const createSeat=async({roomId,number}:SeatCreateInfo)=>{
       try{
-        const newSeat=await seat.create({data:{roomId,number,status}})
+        const newSeat=await seat.create({data:{roomId,number}})
         console.log('Seat created in database:',newSeat)
         return newSeat
       }catch(error){
@@ -322,18 +414,52 @@ status:Status
       
       export const deleteSeat=async(seatId:string)=>{
         try{
-      const deletedSeat=await room.delete({where:{id:seatId}})
+      const deletedSeat=await seat.delete({where:{id:seatId}})
       console.log('Seat deleted from database:',deletedSeat)
       return deletedSeat
         }catch(error){
           console.log('An error occured while deleting seat(database error):',error)
         }
       }
-    
+export const deleteAllRoomSeats=async(roomId:string)=>{
+  try{
+    const deletedSeats=await seat.deleteMany({where:{roomId:roomId}})
+    console.log('Seats deleted from database:',deletedSeats)
+    return deletedSeats
+  }catch(error){
+    console.log('An error occured while deleting seats(database error):',error)
+  }
+}
+
+      export interface SeatUpdateInfo {
+        seatId: string;
+        reservationId: string;
+      }
+      
+      export const updateSeat = async ({ seatId, reservationId }: SeatUpdateInfo) => {
+        try {
+          const updatedSeat = await seat.update({
+            where: { id: seatId },
+            data: {
+              reservations: {
+                connect: { id: reservationId } // Connect the reservation with the specified ID to the seat
+              }
+            },
+            include: {
+              reservations: true // Include the reservations associated with the updated seat in the result
+            }
+          });
+          console.log('Seat updated in database:', updatedSeat);
+          return updatedSeat;
+        } catch (error) {
+          console.log('An error occurred while updating seat (database error):', error);
+        }
+      }
+      
       //RESERVATION DB FUNCTIONS
       export const fetchAllUserReservations=async(userId:string)=>{
         try{
-          const allUserReservations=await reservation.findMany({where:{userId}})
+        const allUserReservations=await reservation.findMany({where:{userId},include:{screening:true,seats:true}})
           console.log(`Reservations fetched from database:`,allUserReservations)
           return allUserReservations
         }
@@ -343,7 +469,7 @@ status:Status
       }
       export const fetchSpecifiedReservation=async(reservationId:string)=>{
         try{
-          const specifiedReservation=await reservation.findUnique({where:{id:reservationId}})
+          const specifiedReservation=await reservation.findUnique({where:{id:reservationId},include:{screening:true,seats:true}})
           console.log('Reservation fetched from database:',specifiedReservation)
           return specifiedReservation
         }
@@ -355,7 +481,8 @@ status:Status
         export interface ReservationCreateInfo{
 userId:string,
 screeningId:string,
-totalAmount:number
+totalAmount:number,
+
         }
         
         export const createReservation=async({userId,screeningId,totalAmount}:ReservationCreateInfo)=>{
@@ -368,20 +495,20 @@ totalAmount:number
         }
         }
         
-        export const deleteReservation=async(seatId:string)=>{
+        export const deleteReservation=async(reservationId:string)=>{
           try{
-        const deletedSeat=await room.delete({where:{id:seatId}})
-        console.log('Seat deleted from database:',deletedSeat)
-        return deletedSeat
+        const deletedReservation=await reservation.delete({where:{id:reservationId}})
+        console.log('Reservation deleted from database:',deletedReservation)
+        return deletedReservation
           }catch(error){
-            console.log('An error occured while deleting seat(database error):',error)
+            console.log('An error occured while deleting reservation(database error):',error)
           }
         }
 
         //LAYOUT DB FUNCTIONS
         export const fetchAllLayouts=async()=>{
           try{
-          const allLayouts=await layout.findMany()
+          const allLayouts=await layout.findMany({include:{rooms:true}})
           console.log('Layouts fetched from database:',allLayouts)
           return allLayouts
           }
@@ -392,7 +519,7 @@ totalAmount:number
         
         export const fetchSpecifiedLayout=async(layoutId:string)=>{
         try{
-          const specifiedLayout=await layout.findUnique({where:{id:layoutId}})
+          const specifiedLayout=await layout.findUnique({where:{id:layoutId},include:{rooms:true}})
           console.log('Cinema fetched from database:',specifiedLayout)
           return specifiedLayout
         }
