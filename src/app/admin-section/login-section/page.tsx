@@ -28,11 +28,11 @@ const LoginPage = () => {
       setIsLoading(true);
       const allAdmins = await getAllAdmins();
       if (!allAdmins) return;
-      for (let i = 0; i < allAdmins.length; i++) {
+      for (let i = 0; i < allAdmins?.length; i++) {
         if (accessId === allAdmins[i]?.access_id) {
           if (password === allAdmins[i]?.password) {
-            context.setCurrentAdmin(allAdmins[i].id);
-            localStorage.setItem("adminId", allAdmins[i].id);
+            context.setCurrentAdmin(allAdmins[i]?.id);
+            localStorage.setItem("adminId", allAdmins[i]?.id);
             setWarning("");
             setAccessId("");
             setPassword("");
