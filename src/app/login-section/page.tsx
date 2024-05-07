@@ -24,11 +24,11 @@ const LoginPage = () => {
       }
       setIsLoading(true);
       const allUsers = await getAllUsers();
-      for (let i = 0; i < allUsers.length; i++) {
+      for (let i = 0; i < allUsers?.length; i++) {
         if (email === allUsers[i]?.email) {
           if (password === allUsers[i]?.password) {
-            context.setCurrentUser(allUsers[i].id);
-            localStorage.setItem("userId", allUsers[i].id);
+            context.setCurrentUser(allUsers[i]?.id);
+            localStorage.setItem("userId", allUsers[i]?.id);
             setWarning("");
             setEmail("");
             setPassword("");
