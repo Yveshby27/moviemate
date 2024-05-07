@@ -27,6 +27,7 @@ const LoginPage = () => {
       }
       setIsLoading(true);
       const allAdmins = await getAllAdmins();
+      if (!allAdmins) return;
       for (let i = 0; i < allAdmins.length; i++) {
         if (accessId === allAdmins[i]?.access_id) {
           if (password === allAdmins[i]?.password) {
