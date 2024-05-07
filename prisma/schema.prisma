@@ -14,27 +14,28 @@ model Cinema {
     id              String @id @default(uuid())
     name            String
     number_of_rooms Int
-    Room            Room[]
+    rooms           Room[]
 }
 
 model Room {
-    id        String      @id @default(uuid())
-    cinema    Cinema      @relation(fields: [cinemaId], references: [id])
-    cinemaId  String
-    number    String
-    capacity  Int
-    Screening Screening[]
-    Seat      Seat[]
-    Layout    Layout      @relation(fields: [layoutId], references: [id])
-    layoutId  String
+    id         String      @id @default(uuid())
+    cinema     Cinema      @relation(fields: [cinemaId], references: [id])
+    cinemaId   String
+    number     String
+    capacity   Int
+    screenings Screening[]
+    seats      Seat[]
+    layout     Layout      @relation(fields: [layoutId], references: [id])
+    layoutId   String
 }
 
 model Movie {
     id           String      @id @default(uuid())
-    title        String
+    title        String      @unique
     length       Int
     release_date String
-    Screening    Screening[]
+    description  String
+    screenings   Screening[]
 }
 
 model Screening {
@@ -45,20 +46,16 @@ model Screening {
     movieId         String
     available_seats Int
     screening_time  String
-    Reservation     Reservation[]
+    seat_price      Int
+    reservations    Reservation[]
 }
 
 model Seat {
-    id     String @id @default(uuid())
-    number String
-    status Status
-    room   Room   @relation(fields: [roomId], references: [id])
-    roomId String
-}
-
-enum Status {
-    Available
-    Booked
+    id           String        @id @default(uuid())
+    number       String
+    room         Room          @relation(fields: [roomId], references: [id])
+    roomId       String
+    reservations Reservation[]
 }
 
 model Reservation {
@@ -68,14 +65,20 @@ model Reservation {
     userId       String
     screeningId  String
     total_amount Int
+    seats        Seat[] // Change to an array of seats
 }
 
 model User {
-    id          String        @id
-    email       String        @unique
-    password    String        @unique
-    is_admin    Boolean
-    Reservation Reservation[]
+    id           String        @id @default(uuid())
+    email        String        @unique
+    password     String
+    reservations Reservation[]
+}
+
+model Admin {
+    id        String @id @default(uuid())
+    access_id String @unique
+    password  String
 }
 
 model Layout {
@@ -85,5 +88,5 @@ model Layout {
     columns     Int
     total_seats Int
     seat_map    Json[]
-    room        Room[]
+    rooms       Room[]
 }
